@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Asystent Produkcji Zawiesi</title>
+    <style>
+        body {
+            font-family: '-apple-system', BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            margin: 0;
+            padding: 10px 10px 80px 10px;
+            display: flex;
+            justify-content: center;
+            transition: background-color 0.5s;
+        }
+        .container {
+            background: white;
+            max-width: 650px;
+            width: 100%;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            box-sizing: border-box;
+        }
+        h2 {
+            text-align: center;
+            color: #2c3e50;
+            margin-top: 0;
+            font-size: 24px;
+        }
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .form-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #34495e;
+            font-size: 14px;
+        }
+        select, input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+            background-color: #f8fafc;
+        }
+        select:focus, input:focus {
+            border-color: #3498db;
+            outline: none;
+            background-color: #fff;
+        }
+        .counter-box {
+            background: #fff3e0;
+            border: 3px solid #ff9800;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(255, 152, 0, 0.2);
+        }
+        .counter-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #e65100;
+            text-transform: uppercase;
+        }
+        .counter-value {
+            font-size: 48px;
+            font-weight: 900;
+            color: #e65100;
+            margin: 5px 0;
+            line-height: 1;
+        }
+        button {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .btn-start { background-color: #27ae60; margin-bottom: 15px; }
+        .btn-start:active { background-color: #1e8449; transform: translateY(2px); }
+        .btn-stop { background-color: #e74c3c; display: none; margin-bottom: 15px;}
+        .btn-stop:active { background-color: #c0392b; transform: translateY(2px); }
+        .btn-secondary { background-color: #64748b; padding: 10px; font-size: 14px; margin-top: 10px; width: auto; }
+        .btn-success { background-color: #10b981; padding: 10px; font-size: 14px; margin-top: 10px; width: auto; margin-left: 5px;}
+        .btn-icon { padding: 6px 10px; width: auto; font-size: 16px; margin: 2px; box-shadow: none; display: inline-block; }
+
+        .timer-box {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .time-display {
+            font-size: 42px;
+            font-weight: bold;
+            margin: 5px 0;
+            font-family: monospace;
+            letter-spacing: 2px;
+        }
+        .result-box {
+            background: #f8fafc;
+            padding: 15px;
+            border-left: 5px solid #3498db;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 15px;
+            border-bottom: 1px dashed #cbd5e1;
+            padding-bottom: 6px;
+            align-items: center;
+        }
+        .result-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        .result-value {
+            font-weight: bold;
+            color: #1e293b;
+            text-align: right;
+        }
+
+        .history-box {
+            margin-top: 30px;
+            border-top: 2px solid #e2e8f0;
+            padding-top: 15px;
+        }
+        .daily-group {
+            margin-bottom: 20px;
+            background: #fff;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        }
+        .daily-header {
+            background: #34495e;
+            color: white;
+            padding: 12px 15px;
+            font-size: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .progress-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: bold;
+        }
+        .progress-bar-bg {
+            background: #1a252f;
+            height: 10px;
+            border-radius: 5px;
+            width: 120px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            background: #2ecc71;
+            height: 100%;
+            transition: width 0.3s;
+        }
+        .table-responsive {
+            overflow-x: auto;
+        }
+        .hist-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            min-width: 500px;
+        }
+        .hist-table th, .hist-table td {
+            border-bottom: 1px solid #e2e8f0;
+            border-right: 1px solid #e2e8f0;
+            padding: 10px 8px;
+            text-align: center;
+        }
+        .hist-table th {
+            background-color: #f8fafc;
+            color: #475569;
+            font-weight: bold;
+        }
+        .hist-table tr:last-child td { border-bottom: none; }
+        .hist-table td:last-child, .hist-table th:last-child { border-right: none; }
+        
+        #edit-modal {
+            display: none; 
+            position: fixed; 
+            top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.6); 
+            z-index: 1000;
+            align-items: center; 
+            justify-content: center;
+        }
+        .modal-content {
+            background: white; 
+            padding: 20px; 
+            border-radius: 12px; 
+            width: 90%; 
+            max-width: 400px;
+        }
+
+        @keyframes flashRed {
+            0% { background-color: #ff4757; }
+            50% { background-color: #ffffff; }
+            100% { background-color: #ff4757; }
+        }
+        .alarm-active {
+            animation: flashRed 1s infinite;
+        }
+
+        @media (max-width: 500px) {
+            .form-row { flex-direction: column; gap: 10px; }
+            .counter-value { font-size: 42px; }
+            .time-display { font-size: 36px; }
+            .daily-header { flex-direction: column; align-items: flex-start; }
+            .progress-bar-bg { width: 150px; }
+        }
+
+        .app-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #ffffff;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
+            z-index: 1000;
+            border-top: 1px solid #e2e8f0;
+        }
+        .app-nav a {
+            text-decoration: none;
+            color: #64748b;
+            font-size: 14px;
+            font-weight: bold;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: color 0.2s;
+        }
+        .app-nav a:hover, .app-nav a.active {
+            color: #2563eb;
+        }
+        .app-nav span.icon {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🏭 Asystent Produkcji</h2>
+    
+    <div class="form-row">
+        <div class="form-group">
+            <label>Tonaż [t]:</label>
+            <select id="tonnage" onchange="calcAndSave()">
+                <option value="0.5">0.5 t</option>
+                <option value="1.0">1.0 t</option>
+                <option value="1.5">1.5 t</option>
+                <option value="2.0">2.0 t</option>
+                <option value="3.0">3.0 t</option>
+                <option value="4.0">4.0 t</option>
+                <option value="5.0">5.0 t</option>
+                <option value="6.0">6.0 t</option>
+                <option value="8.0">8.0 t</option>
+                <option value="10.0">10.0 t</option>
+                <option value="12.0">12.0 t</option>
+                <option value="15.0">15.0 t</option>
+                <option value="20.0">20.0 t</option>
+                <option value="25.0">25.0 t</option>
+                <option value="30.0">30.0 t</option>
+                <option value="35.0">35.0 t</option>
+                <option value="40.0">40.0 t</option>
+                <option value="45.0">45.0 t</option>
+                <option value="50.0">50.0 t</option>
+                <option value="60.0">60.0 t</option>
+                <option value="70.0">70.0 t</option>
+                <option value="80.0">80.0 t</option>
+                <option value="90.0">90.0 t</option>
+                <option value="100.0">100.0 t</option>
+                <option value="125.0">125.0 t</option>
+                <option value="150.0">150.0 t</option>
+                <option value="180.0">180.0 t</option>
+                <option value="200.0">200.0 t</option>
+                <option value="250.0">250.0 t</option>
+                <option value="300.0">300.0 t</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Długość L1 [m]:</label>
+            <input type="number" id="length" step="0.25" value="1.0" min="0.25" inputmode="decimal" oninput="calcAndSave()">
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label>Ilość sztuk:</label>
+            <input type="number" id="pieces" value="10" min="1" inputmode="numeric" oninput="calcAndSave()">
+        </div>
+        <div class="form-group">
+            <label>Czas na całość [h] (np 0.5):</label>
+            <input type="number" id="timeInput" step="0.1" value="0.5" min="0.1" inputmode="decimal" oninput="calcAndSave()">
+        </div>
+    </div>
+
+    <div class="counter-box">
+        <div class="counter-title">Ustawienie Licznika</div>
+        <div class="counter-value" id="out-counter">-</div>
+    </div>
+
+    <button class="btn-start" id="btn-start" onclick="startProduction()">🚀 Rozpocznij Produkcję</button>
+    <button class="btn-stop" id="btn-stop" onclick="finishEarly()">🛑 Zakończ zlecenia (Zapisz czas z formularza)</button>
+
+    <div class="timer-box" id="timer-box">
+        <div style="font-size: 14px; color: #bdc3c7;">Zakończenie planowane: <span id="out-end-time" style="font-weight:bold; color:#f1c40f;">-</span></div>
+        <div class="time-display" id="out-countdown">00:00:00</div>
+        <div id="alarm-msg" style="color:#ff4757; font-weight:bold; display:none;">⚠️ UWAGA! KOŃCÓWKA CZASU! ⚠️</div>
+    </div>
+
+    <div class="result-box">
+        <div class="result-item"><span>Waga 1 sztuki:</span> <span class="result-value" id="out-unit-weight">-</span></div>
+        <div class="result-item"><span>Łączna waga zlecenia:</span> <span class="result-value" id="out-total-weight">-</span></div>
+    </div>
+
+    <div class="result-box" style="border-left-color: #22a6b3; background: #e0f7fa;">
+        <div class="result-item"><span>Ilość używanych szpul:</span> <span class="result-value" id="out-spool-count">-</span></div>
+        <div class="result-item">
+            <span>Wymiana szpul co:<br><small style="font-weight:normal; color:#546e7a;">(zakładając szpule 15 kg)</small></span> 
+            <span class="result-value" id="out-spools-exchange" style="color:#00838f; font-size:20px;">- szt.</span>
+        </div>
+    </div>
+
+    <div class="history-box">
+        <h3 style="margin-top:0; color:#333; font-size: 18px;">📜 Dziennik Produkcji (Norma: 450 min)</h3>
+        <div id="history-list"></div>
+        <div style="display: flex; gap: 5px;">
+            <button class="btn-secondary" onclick="clearHistory()">🗑️ Wyczyść Historię</button>
+            <button class="btn-success" onclick="exportCSV()">📥 Eksport CSV</button>
+        </div>
+    </div>
+</div>
+
+<div id="edit-modal">
+    <div class="modal-content">
+        <h3 style="margin-top:0;">Edytuj Zlecenie</h3>
+        <input type="hidden" id="edit-id">
+        <div style="margin-bottom:10px;">
+            <label>Tonaż [t]:</label>
+            <input type="text" id="edit-ton" disabled style="background:#e2e8f0;">
+        </div>
+        <div style="margin-bottom:10px;">
+            <label>Długość L1 [m]:</label>
+            <input type="text" id="edit-l1" disabled style="background:#e2e8f0;">
+        </div>
+        <div style="margin-bottom:10px;">
+            <label>Zrobione sztuki:</label>
+            <input type="number" id="edit-pieces" min="1" inputmode="numeric">
+        </div>
+        <div style="margin-bottom:20px;">
+            <label>Wykorzystany czas [min]:</label>
+            <input type="number" id="edit-time" step="0.1" min="0.1" inputmode="decimal">
+        </div>
+        <div style="display:flex; gap:10px;">
+            <button onclick="saveEdit()" style="background:#27ae60;">Zapisz</button>
+            <button onclick="closeEdit()" style="background:#7f8c8d;">Anuluj</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Pełna baza danych, w tym dodane braki (25, 35, 40, 45, 60, ... aż do 300 t)
+    const db = {
+        "0.5": { spools: 1, cnt1: 20, cnt2: 40, wgt1: 0.159, wgt2: 0.312 },
+        "1.0": { spools: 1, cnt1: 20, cnt2: 40, wgt1: 0.159, wgt2: 0.312 },
+        "1.5": { spools: 1, cnt1: 26, cnt2: 52, wgt1: 0.201, wgt2: 0.395 },
+        "2.0": { spools: 2, cnt1: 20, cnt2: 40, wgt1: 0.395, wgt2: 0.700 },
+        "3.0": { spools: 3, cnt1: 20, cnt2: 40, wgt1: 0.478, wgt2: 0.936 },
+        "4.0": { spools: 4, cnt1: 20, cnt2: 40, wgt1: 0.638, wgt2: 1.247 },
+        "5.0": { spools: 2, cnt1: 26, cnt2: 52, wgt1: 0.804, wgt2: 1.580 },
+        "6.0": { spools: 3, cnt1: 22, cnt2: 44, wgt1: 1.040, wgt2: 2.037 },
+        "8.0": { spools: 3, cnt1: 30, cnt2: 60, wgt1: 1.372, wgt2: 2.703 }, 
+        "10.0":{ spools: 4, cnt1: 30, cnt2: 60, wgt1: 1.830, wgt2: 3.604 },
+        "12.0":{ spools: 6, cnt1: 28, cnt2: 56, wgt1: 2.329, wgt2: 4.658 },
+        "15.0":{ spools: 6, cnt1: 36, cnt2: 72, wgt1: 2.990, wgt2: 5.980 },
+        "20.0":{ spools: 12, cnt1: 26, cnt2: 52, wgt1: 4.326, wgt2: 8.652 },
+        "25.0":{ spools: 12, cnt1: 32, cnt2: 64, wgt1: 5.320, wgt2: 10.640 }, // Baza wyliczona
+        "30.0":{ spools: 12, cnt1: 38, cnt2: 76, wgt1: 6.323, wgt2: 12.646 },
+        "35.0":{ spools: 12, cnt1: 44, cnt2: 88, wgt1: 7.320, wgt2: 14.640 },
+        "40.0":{ spools: 12, cnt1: 50, cnt2: 100, wgt1: 8.320, wgt2: 16.640 },
+        "45.0":{ spools: 12, cnt1: 54, cnt2: 108, wgt1: 8.990, wgt2: 17.980 },
+        "50.0":{ spools: 12, cnt1: 64, cnt2: 128, wgt1: 10.649, wgt2: 21.298 },
+        "60.0":{ spools: 12, cnt1: 76, cnt2: 152, wgt1: 12.650, wgt2: 25.300 },
+        "70.0":{ spools: 12, cnt1: 88, cnt2: 176, wgt1: 14.640, wgt2: 29.280 },
+        "80.0":{ spools: 12, cnt1: 100, cnt2: 200, wgt1: 16.640, wgt2: 33.280 },
+        "90.0":{ spools: 12, cnt1: 114, cnt2: 228, wgt1: 18.970, wgt2: 37.940 },
+        "100.0":{ spools: 12, cnt1: 126, cnt2: 252, wgt1: 20.970, wgt2: 41.940 },
+        "125.0":{ spools: 12, cnt1: 160, cnt2: 320, wgt1: 26.620, wgt2: 53.240 },
+        "150.0":{ spools: 12, cnt1: 192, cnt2: 384, wgt1: 31.950, wgt2: 63.900 },
+        "180.0":{ spools: 12, cnt1: 228, cnt2: 456, wgt1: 37.940, wgt2: 75.880 },
+        "200.0":{ spools: 12, cnt1: 252, cnt2: 504, wgt1: 41.930, wgt2: 83.860 },
+        "250.0":{ spools: 12, cnt1: 320, cnt2: 640, wgt1: 53.250, wgt2: 106.500 },
+        "300.0":{ spools: 12, cnt1: 384, cnt2: 768, wgt1: 63.890, wgt2: 127.780 }
+    };
+
+    let countdownInterval = null;
+    let targetTime = null;
+    let startTime = null;
+    let isAlarming = false;
+    let audioCtx = null;
+    let beepInterval = null;
+
+    window.onload = () => {
+        loadState();
+        renderHistory();
+        checkActiveTimer();
+        calcAndSave();
+    };
+
+    function calcAndSave() {
+        let t_val = document.getElementById("tonnage").value;
+        let L1 = parseFloat(document.getElementById("length").value) || 1.0;
+        let pieces = parseInt(document.getElementById("pieces").value) || 1;
+        let timeHours = parseFloat(document.getElementById("timeInput").value) || 0;
+
+        localStorage.setItem("zawiesia_inputs", JSON.stringify({ t_val, L1, pieces, timeHours }));
+
+        let t = db[t_val];
+        let m_cnt = t.cnt2 - t.cnt1;
+        let add_cnt = t.cnt1 - m_cnt;
+        let final_cnt = (m_cnt * L1) + add_cnt;
+
+        let m_wgt = t.wgt2 - t.wgt1;
+        let add_wgt = t.wgt1 - m_wgt;
+        let final_unit_wgt = (m_wgt * L1) + add_wgt;
+        let total_wgt = final_unit_wgt * pieces;
+
+        let total_yarn_kg = t.spools * 15;
+        let exchange_pieces = Math.floor(total_yarn_kg / final_unit_wgt);
+
+        document.getElementById("out-counter").innerText = Math.round(final_cnt);
+        document.getElementById("out-unit-weight").innerText = final_unit_wgt.toFixed(2) + " kg";
+        document.getElementById("out-total-weight").innerText = total_wgt.toFixed(2) + " kg";
+        
+        document.getElementById("out-spool-count").innerText = t.spools + " szt.";
+        document.getElementById("out-spools-exchange").innerText = exchange_pieces + " szt.";
+    }
+
+    function loadState() {
+        let saved = localStorage.getItem("zawiesia_inputs");
+        if (saved) {
+            let data = JSON.parse(saved);
+            document.getElementById("tonnage").value = data.t_val || "0.5";
+            document.getElementById("length").value = data.L1 || 1.0;
+            document.getElementById("pieces").value = data.pieces || 10;
+            document.getElementById("timeInput").value = data.timeHours || 0.5;
+        }
+    }
+
+    // --- PRODUKCJA I CZAS ---
+    function startProduction() {
+        if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let timeHours = parseFloat(document.getElementById("timeInput").value) || 0;
+        if (timeHours <= 0) return alert("Podaj prawidłowy czas wykonania!");
+
+        startTime = Date.now();
+        targetTime = startTime + (timeHours * 60 * 60 * 1000);
+        
+        localStorage.setItem("prod_startTime", startTime);
+        localStorage.setItem("prod_targetTime", targetTime);
+
+        uiTimerActive(true);
+        resetAlarm();
+        
+        countdownInterval = setInterval(updateTimer, 1000);
+        updateTimer();
+    }
+
+    function checkActiveTimer() {
+        let savedTarget = localStorage.getItem("prod_targetTime");
+        let savedStart = localStorage.getItem("prod_startTime");
+        if (savedTarget && savedStart) {
+            if (parseInt(savedTarget) > Date.now()) {
+                targetTime = parseInt(savedTarget);
+                startTime = parseInt(savedStart);
+                uiTimerActive(true);
+                countdownInterval = setInterval(updateTimer, 1000);
+                updateTimer();
+            } else {
+                localStorage.removeItem("prod_targetTime");
+                localStorage.removeItem("prod_startTime");
+            }
+        }
+    }
+
+    function finishEarly() {
+        // --- KLUCZOWA ZMIANA: Zapisujemy ZADEKLAROWANY czas z formularza, a nie stoper ---
+        let timeHours = parseFloat(document.getElementById("timeInput").value) || 0;
+        let declaredMins = parseFloat((timeHours * 60).toFixed(1));
+
+        let t_val = document.getElementById("tonnage").value;
+        let L1 = document.getElementById("length").value;
+        let pieces = parseInt(document.getElementById("pieces").value);
+
+        let t = db[t_val];
+        let m_wgt = t.wgt2 - t.wgt1;
+        let add_wgt = t.wgt1 - m_wgt;
+        let final_unit_wgt = (m_wgt * L1) + add_wgt;
+        let total_wgt = parseFloat((final_unit_wgt * pieces).toFixed(2));
+
+        let d = new Date();
+
+        saveToHistory({
+            id: Date.now(),
+            dayStr: d.toLocaleDateString('pl-PL'),
+            timeStr: d.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }),
+            ton: t_val,
+            l1: L1,
+            pieces: pieces,
+            time: declaredMins, // Dopisany czas z normy wpisanej na sztywno
+            weight: total_wgt
+        });
+
+        clearInterval(countdownInterval);
+        localStorage.removeItem("prod_targetTime");
+        localStorage.removeItem("prod_startTime");
+        resetAlarm();
+        uiTimerActive(false);
+        renderHistory();
+    }
+
+    function updateTimer() {
+        if (!targetTime) return;
+        let now = Date.now();
+        let diff = targetTime - now;
+
+        if (diff <= 0) {
+            finishEarly();
+            alert("Czas wyznaczony na wykonanie minął. Zlecenie zostało zapisane z pełnym zadeklarowanym czasem!");
+            return;
+        }
+
+        if (diff <= 60000 && diff > 0 && !isAlarming) triggerAlarm();
+
+        let h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        let m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        let s = Math.floor((diff % (1000 * 60)) / 1000);
+
+        document.getElementById("out-countdown").innerText = 
+            (h < 10 ? "0" + h : h) + ":" + (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s);
+            
+        let endD = new Date(targetTime);
+        document.getElementById("out-end-time").innerText = endD.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function uiTimerActive(isActive) {
+        document.getElementById("btn-start").style.display = isActive ? "none" : "block";
+        document.getElementById("btn-stop").style.display = isActive ? "block" : "none";
+        document.getElementById("timer-box").style.display = isActive ? "block" : "none";
+        
+        document.getElementById("tonnage").disabled = isActive;
+        document.getElementById("length").disabled = isActive;
+        document.getElementById("pieces").disabled = isActive;
+        document.getElementById("timeInput").disabled = isActive;
+    }
+
+    // --- ZARZĄDZANIE HISTORIĄ I GRUPOWANIEM DNI ---
+    function getHistory() {
+        let historyStr = localStorage.getItem("zawiesia_history");
+        try {
+            let parsed = JSON.parse(historyStr || "[]");
+            if(parsed.length > 0 && typeof parsed[0] === 'string') return [];
+            return parsed;
+        } catch(e) { return []; }
+    }
+
+    function saveToHistory(itemObj) {
+        let history = getHistory();
+        history.push(itemObj);
+        localStorage.setItem("zawiesia_history", JSON.stringify(history));
+    }
+
+    function renderHistory() {
+        let history = getHistory();
+        let listDiv = document.getElementById("history-list");
+        
+        if(history.length === 0) {
+            listDiv.innerHTML = '<div style="font-size: 14px; color: #94a3b8; margin-bottom:15px;">Brak zrobionych zleceń.</div>';
+            return;
+        }
+
+        let groups = {};
+        [...history].reverse().forEach(item => {
+            let day = item.dayStr || new Date(item.id).toLocaleDateString('pl-PL');
+            let time = item.timeStr || new Date(item.id).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+            
+            if(!groups[day]) groups[day] = { items: [], totalTime: 0 };
+            
+            item.dispDay = day;
+            item.dispTime = time;
+            item.parsedTime = parseFloat(item.time) || 0;
+            
+            groups[day].items.push(item);
+            groups[day].totalTime += item.parsedTime;
+        });
+
+        let html = "";
+        
+        for (let day in groups) {
+            let g = groups[day];
+            let percent = Math.min((g.totalTime / 450) * 100, 100).toFixed(0);
+            let overTimeMsg = g.totalTime > 450 ? `<span style="color:#f1c40f; margin-left:5px; font-size:12px;">(+${(g.totalTime-450).toFixed(1)} min)</span>` : "";
+
+            html += `
+            <div class="daily-group">
+                <div class="daily-header">
+                    <div>📅 ${day}</div>
+                    <div class="progress-container">
+                        ⏱️ ${g.totalTime.toFixed(1)} / 450 min ${overTimeMsg}
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" style="width:${percent}%; background:${g.totalTime >= 450 ? '#f39c12' : '#2ecc71'};"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="hist-table">
+                        <tr><th>Godz. Zakończenia</th><th>Tonaż</th><th>L1 [m]</th><th>Szt.</th><th>Minuty normy</th><th>Kg</th><th>Opcje</th></tr>
+            `;
+            
+            g.items.forEach(item => {
+                html += `<tr>
+                    <td>${item.dispTime}</td>
+                    <td><b>${item.ton} t</b></td>
+                    <td>${item.l1}</td>
+                    <td>${item.pieces}</td>
+                    <td><b>${item.parsedTime.toFixed(1)}</b></td>
+                    <td>${item.weight}</td>
+                    <td style="white-space:nowrap;">
+                        <button class="btn-icon" style="background:#f39c12; color:white;" onclick="openEdit(${item.id})">✏️</button>
+                        <button class="btn-icon" style="background:#e74c3c; color:white;" onclick="deleteItem(${item.id})">🗑️</button>
+                    </td>
+                </tr>`;
+            });
+            html += `</table></div></div>`;
+        }
+        
+        listDiv.innerHTML = html;
+    }
+
+    function deleteItem(id) {
+        if(!confirm("Na pewno usunąć to zlecenie z historii?")) return;
+        let history = getHistory().filter(i => i.id !== id);
+        localStorage.setItem("zawiesia_history", JSON.stringify(history));
+        renderHistory();
+    }
+
+    function clearHistory() {
+        if(!confirm("Na pewno wyczyścić CAŁĄ historię ze wszystkich dni?")) return;
+        localStorage.removeItem("zawiesia_history");
+        renderHistory();
+    }
+
+    // --- EDYCJA ---
+    function openEdit(id) {
+        let item = getHistory().find(i => i.id === id);
+        if(!item) return;
+        document.getElementById("edit-id").value = item.id;
+        document.getElementById("edit-ton").value = item.ton;
+        document.getElementById("edit-l1").value = item.l1;
+        document.getElementById("edit-pieces").value = item.pieces;
+        document.getElementById("edit-time").value = item.time;
+        document.getElementById("edit-modal").style.display = "flex";
+    }
+
+    function closeEdit() {
+        document.getElementById("edit-modal").style.display = "none";
+    }
+
+    function saveEdit() {
+        let id = parseInt(document.getElementById("edit-id").value);
+        let history = getHistory();
+        let index = history.findIndex(i => i.id === id);
+        if(index === -1) return;
+
+        let newPieces = parseInt(document.getElementById("edit-pieces").value);
+        let newTime = parseFloat(document.getElementById("edit-time").value);
+
+        if(!newPieces || !newTime) return alert("Podaj prawidłowe wartości!");
+
+        let item = history[index];
+        let t = db[item.ton];
+        let m_wgt = t.wgt2 - t.wgt1;
+        let add_wgt = t.wgt1 - m_wgt;
+        let final_unit_wgt = (m_wgt * parseFloat(item.l1)) + add_wgt;
+        
+        item.pieces = newPieces;
+        item.time = newTime;
+        item.weight = parseFloat((final_unit_wgt * newPieces).toFixed(2));
+
+        history[index] = item;
+        localStorage.setItem("zawiesia_history", JSON.stringify(history));
+        
+        closeEdit();
+        renderHistory();
+    }
+
+    // --- EKSPORT CSV ---
+    function exportCSV() {
+        let history = getHistory();
+        if(history.length === 0) return alert("Brak danych do wyeksportowania!");
+
+        let csv = "Data;Godzina;Tonaz [t];Dlugosc L1 [m];Sztuki;Czas wykonania (Norma) [min];Laczna waga [kg]\n";
+        
+        history.forEach(i => {
+            let d = i.dayStr || new Date(i.id).toLocaleDateString('pl-PL');
+            let t = i.timeStr || new Date(i.id).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+            csv += `${d};${t};${i.ton};${i.l1};${i.pieces};${i.time};${i.weight}\n`;
+        });
+
+        let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        let link = document.createElement("a");
+        let url = URL.createObjectURL(blob);
+        link.href = url;
+        link.download = `Historia_Zawiesia_${new Date().toLocaleDateString('pl-PL').replace(/\./g, '-')}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    // --- ALARM ---
+    function triggerAlarm() {
+        isAlarming = true;
+        document.body.classList.add("alarm-active");
+        document.getElementById("alarm-msg").style.display = "block";
+        beep(); 
+        beepInterval = setInterval(beep, 1000);
+    }
+
+    function resetAlarm() {
+        isAlarming = false;
+        document.body.classList.remove("alarm-active");
+        document.getElementById("alarm-msg").style.display = "none";
+        clearInterval(beepInterval);
+    }
+
+    function beep() {
+        if (!audioCtx) return;
+        let osc = audioCtx.createOscillator();
+        let gainNode = audioCtx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(800, audioCtx.currentTime); 
+        gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
+    }
+</script>
+
+<nav class="app-nav">
+    <a href="index.html"><span class="icon">⏱️</span>Czasomierz</a>
+    <a href="1.html"><span class="icon">⚙️</span>Kalkulator</a>
+    <a href="2.html" class="active"><span class="icon">🏭</span>Asystent</a>
+</nav>
+
+</body>
+</html>

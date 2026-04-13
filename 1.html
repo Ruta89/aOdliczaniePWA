@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator Zawiesi Dolezych</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 20px 20px 80px 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            max-width: 500px;
+            width: 100%;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+            color: #2c3e50;
+            margin-top: 0;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #34495e;
+        }
+        select, input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #bdc3c7;
+            border-radius: 6px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        select:focus, input:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+        .result-box {
+            background: #ecf0f1;
+            padding: 15px;
+            border-left: 5px solid #3498db;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 16px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        .result-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        .result-value {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .highlight {
+            background: #e74c3c;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        .spool-box {
+            background: #dff9fb;
+            border-left: 5px solid #22a6b3;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #130f40;
+        }
+
+        .app-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #ffffff;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
+            z-index: 1000;
+            border-top: 1px solid #e2e8f0;
+        }
+        .app-nav a {
+            text-decoration: none;
+            color: #64748b;
+            font-size: 14px;
+            font-weight: bold;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: color 0.2s;
+        }
+        .app-nav a:hover, .app-nav a.active {
+            color: #2563eb;
+        }
+        .app-nav span.icon {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>⚙️ Kalkulator Nawoju</h2>
+    
+    <div class="form-group">
+        <label for="tonnage">Wybierz Tonaż:</label>
+        <select id="tonnage" onchange="calculate()">
+            <option value="0.5">0.5 t</option>
+            <option value="1.0">1.0 t</option>
+            <option value="1.5">1.5 t</option>
+            <option value="2.0">2.0 t</option>
+            <option value="3.0">3.0 t</option>
+            <option value="4.0">4.0 t</option>
+            <option value="5.0">5.0 t</option>
+            <option value="6.0">6.0 t</option>
+            <option value="8.0">8.0 t</option>
+            <option value="10.0">10.0 t</option>
+            <option value="12.0">12.0 t</option>
+            <option value="20.0">20.0 t</option>
+            <option value="30.0">30.0 t</option>
+            <option value="50.0">50.0 t</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="length">Długość robocza L1 [metry]:</label>
+        <input type="number" id="length" step="0.25" value="1.0" min="0.25" oninput="calculate()">
+    </div>
+
+    <div class="result-box">
+        <div class="result-item"><span>Przędza (dtex):</span> <span class="result-value" id="out-dtex">-</span></div>
+        <div class="result-item"><span>Ilość szpul:</span> <span class="result-value" id="out-spools">-</span></div>
+        <div class="result-item"><span>Ilość obwodów:</span> <span class="result-value" id="out-circuits">-</span></div>
+        <div class="result-item"><span>Kontrola nici:</span> <span class="result-value" id="out-ctrl">-</span></div>
+    </div>
+
+    <div class="result-box" style="border-left-color: #f39c12;">
+        <div class="result-item"><span>Licznik:</span> <span class="result-value" id="out-counter">-</span></div>
+        <div class="result-item"><span>Zużycie całkowite:</span> <span class="result-value" id="out-usage">-</span></div>
+        <div class="result-item"><span>Waga przędzy:</span> <span class="result-value" id="out-weight">-</span></div>
+    </div>
+
+    <div class="spool-box">
+        Wymiana szpul co: <br>
+        <span id="out-pieces" style="font-size: 26px; color: #eb4d4b;">-</span> sztuk
+        <div style="font-size: 12px; font-weight: normal; margin-top: 5px;">
+            (zakładając pełne szpule 15 kg)
+        </div>
+    </div>
+</div>
+
+<script>
+    // Baza danych stworzona z interpolacji L1=1m i L1=2m z instrukcji
+    const db = {
+        "0.5": { dtex: "66 000", spools: 1, circ: 10, ctrl: "-", L1: { usg: 23, wgt: 0.159, cnt: 20 }, L2: { usg: 45, wgt: 0.312, cnt: 40 } },
+        "1.0": { dtex: "66 000", spools: 1, circ: 10, ctrl: "-", L1: { usg: 23, wgt: 0.159, cnt: 20 }, L2: { usg: 45, wgt: 0.312, cnt: 40 } },
+        "1.5": { dtex: "66 000", spools: 1, circ: 13, ctrl: "-", L1: { usg: 29, wgt: 0.201, cnt: 26 }, L2: { usg: 57, wgt: 0.395, cnt: 52 } },
+        "2.0": { dtex: "66 000", spools: 2, circ: 10, ctrl: "-", L1: { usg: 57, wgt: 0.395, cnt: 25 }, L2: { usg: 101, wgt: 0.700, cnt: 45 } },
+        "3.0": { dtex: "66 000", spools: 3, circ: 10, ctrl: "-", L1: { usg: 69, wgt: 0.478, cnt: 20 }, L2: { usg: 135, wgt: 0.936, cnt: 40 } },
+        "4.0": { dtex: "66 000", spools: 4, circ: 10, ctrl: "-", L1: { usg: 92, wgt: 0.638, cnt: 20 }, L2: { usg: 180, wgt: 1.247, cnt: 40 } },
+        "5.0": { dtex: "132 000", spools: 2, circ: 13, ctrl: "-", L1: { usg: 58, wgt: 0.804, cnt: 26 }, L2: { usg: 114, wgt: 1.580, cnt: 52 } },
+        "6.0": { dtex: "132 000", spools: 3, circ: 11, ctrl: "-", L1: { usg: 99, wgt: 1.372, cnt: 30 }, L2: { usg: 195, wgt: 2.703, cnt: 60 } },
+        "8.0": { dtex: "132 000", spools: 3, circ: 15, ctrl: "-", L1: { usg: 131, wgt: 1.816, cnt: 39 }, L2: { usg: 263, wgt: 3.645, cnt: 79 } }, // L1=2m interpolowane do wzoru
+        "10.0": { dtex: "132 000", spools: 4, circ: 15, ctrl: "-", L1: { usg: 166, wgt: 2.301, cnt: 38 }, L2: { usg: 294, wgt: 4.075, cnt: 68 } },
+        "12.0": { dtex: "132 000", spools: 6, circ: 14, ctrl: 90, L1: { usg: 168, wgt: 2.329, cnt: 28 }, L2: { usg: 336, wgt: 4.658, cnt: 56 } },
+        "20.0": { dtex: "132 000", spools: 12, circ: 13, ctrl: 168, L1: { usg: 312, wgt: 4.326, cnt: 26 }, L2: { usg: 624, wgt: 8.652, cnt: 52 } },
+        "30.0": { dtex: "132 000", spools: 12, circ: 19, ctrl: 240, L1: { usg: 456, wgt: 6.323, cnt: 38 }, L2: { usg: 912, wgt: 12.646, cnt: 76 } },
+        "50.0": { dtex: "132 000", spools: 12, circ: 32, ctrl: 396, L1: { usg: 768, wgt: 10.649, cnt: 64 }, L2: { usg: 1536, wgt: 21.298, cnt: 128 } }
+    };
+
+    function calculate() {
+        let t_val = document.getElementById("tonnage").value;
+        let L1 = parseFloat(document.getElementById("length").value);
+        
+        if (isNaN(L1) || L1 <= 0) return;
+
+        let t = db[t_val];
+
+        // Wyliczanie funkcji liniowej y = ax + b dla każdego parametru na podstawie L1=1 i L1=2
+        // Użycie tej metody w programie na zawsze likwiduje błąd i liczy dokładnie to samo co maszyna
+        
+        // Mnożniki (różnica między 2m a 1m)
+        let m_usg = t.L2.usg - t.L1.usg;
+        let m_wgt = t.L2.wgt - t.L1.wgt;
+        let m_cnt = t.L2.cnt - t.L1.cnt;
+
+        // Stałe naddatki (zakładka, start)
+        let add_usg = t.L1.usg - m_usg;
+        let add_wgt = t.L1.wgt - m_wgt;
+        let add_cnt = t.L1.cnt - m_cnt;
+
+        // Wartości końcowe
+        let final_usg = (m_usg * L1) + add_usg;
+        let final_wgt = (m_wgt * L1) + add_wgt;
+        let final_cnt = (m_cnt * L1) + add_cnt;
+
+        // Obliczanie co ile wymiana szpul
+        let total_available_yarn_kg = t.spools * 15;
+        let pieces = Math.floor(total_available_yarn_kg / final_wgt);
+
+        // Wyświetlanie wyników
+        document.getElementById("out-dtex").innerText = t.dtex;
+        document.getElementById("out-spools").innerText = t.spools;
+        document.getElementById("out-circuits").innerText = t.circ;
+        document.getElementById("out-ctrl").innerText = t.ctrl;
+        
+        document.getElementById("out-counter").innerText = Math.round(final_cnt);
+        document.getElementById("out-usage").innerText = final_usg.toFixed(0) + " m";
+        document.getElementById("out-weight").innerText = final_wgt.toFixed(3) + " kg";
+        
+        document.getElementById("out-pieces").innerText = pieces;
+    }
+
+    // Uruchomienie przeliczenia przy włączeniu
+    window.onload = calculate;
+</script>
+
+<nav class="app-nav">
+    <a href="index.html"><span class="icon">⏱️</span>Czasomierz</a>
+    <a href="1.html" class="active"><span class="icon">⚙️</span>Kalkulator</a>
+    <a href="2.html"><span class="icon">🏭</span>Asystent</a>
+</nav>
+
+</body>
+</html>

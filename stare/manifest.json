@@ -1,0 +1,26 @@
+{
+  "name": "Czasomierz PWA",
+  "short_name": "Czasomierz",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#1a1a2e",
+  "theme_color": "#1a1a2e",
+  "description": "Odliczanie czasu dziesiętnego do pracy",
+  "icons": [
+    {
+      "src": "icons/icon-64x64.png",
+      "sizes": "64x64",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
