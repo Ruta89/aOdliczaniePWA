@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let isMuted = false;
     
     let audioCtx = null;
-    let alarmInterval = null;
+    let alarmTimeout = null;
 
     if ('Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
         Notification.requestPermission();
@@ -55,16 +55,36 @@ document.addEventListener('DOMContentLoaded', () => {
         osc.stop(audioCtx.currentTime + 0.4);
     }
 
-    function startAlarm() {
-        if (alarmInterval) return; 
+    function scheduleNextBeep() {
+        const now = Date.now();
+        let remaining = 0;
+        if (targetTime > 0) {
+            remaining = Math.round((targetTime - now) / 1000);
+            if (remaining < 0) remaining = 0;
+        }
+
+        let delay = 1000;
+        if (remaining === 0) {
+            delay = 450;
+        } else if (remaining <= 15) {
+            delay = 600;
+        } else if (remaining <= 30) {
+            delay = 800;
+        }
+        
         playBeep();
-        alarmInterval = setInterval(playBeep, 1000);
+        alarmTimeout = setTimeout(scheduleNextBeep, delay);
+    }
+
+    function startAlarm() {
+        if (alarmTimeout || isMuted) return; 
+        scheduleNextBeep();
     }
 
     function stopAlarm() {
-        if (alarmInterval) {
-            clearInterval(alarmInterval);
-            alarmInterval = null;
+        if (alarmTimeout) {
+            clearTimeout(alarmTimeout);
+            alarmTimeout = null;
         }
     }
 
@@ -197,15 +217,21 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isMuted) {
             muteBtn.textContent = 'Włącz dźwięk 🔔';
             muteBtn.style.background = 'rgba(255, 255, 255, 0.3)';
-            if (alarmInterval) stopAlarm();
+            if (alarmTimeout) stopAlarm();
         } else {
             muteBtn.textContent = 'Wycisz 🔕';
             muteBtn.style.background = 'var(--outline)';
-            if (targetTime > 0 && Math.round((targetTime - Date.now()) / 1000) < 60) {
+            if (targetTime > 0 && (targetTime - Date.now()) / 1000 < 60) {
                 startAlarm();
             }
         }
     });
 
     muteBtn.textContent = 'Wycisz 🔕';
+
+    timeInput.addEventListener('keyup', (e) => {
+        if (e.key === 'Enter') {
+            startBtn.click();
+        }
+    });
 });
