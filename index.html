@@ -13,8 +13,11 @@
 <body>
     <div class="glass-container">
         <h1>Czasomierz</h1>
+        <div id="clockDisplay">00:00:00</div>
         
-        <div class="input-group">
+        <div id="endTimeDisplay" class="end-time">Koniec: --:--:--</div>
+        
+        <div class="input-group" style="margin-top: 25px;">
             <label for="timeInput">Wprowadź czas (w formacie dziesiętnym, np. 0.5 = 30 min):</label>
             <input type="number" id="timeInput" step="0.01" min="0.01" placeholder="np. 1.25">
         </div>
@@ -23,12 +26,8 @@
             <button id="startBtn" class="btn primary">Rozpocznij</button>
             <button id="stopBtn" class="btn secondary">Zatrzymaj</button>
             <button id="resetBtn" class="btn secondary">Reset</button>
-            <button id="muteBtn" class="btn outline">Wycisz 🔔</button>
+            <button id="muteBtn" class="btn outline">Wycisz 🔕</button>
         </div>
-
-        <div id="clockDisplay">00:00:00</div>
-        
-        <div id="endTimeDisplay" class="end-time">Koniec: --:--:--</div>
         
         <div id="statusMessage" class="status-message"></div>
     </div>
