@@ -1,0 +1,211 @@
+:root {
+    --bg-start-1: #1a1a2e;
+    --bg-start-2: #16213e;
+    --bg-start-3: #0f3460;
+    
+    --bg-yellow-1: #9b7001;
+    --bg-yellow-2: #c68f00;
+    --bg-yellow-3: #dca700;
+    
+    --bg-red-1: #5c0000;
+    --bg-red-2: #8e0000;
+    --bg-red-3: #b30000;
+    
+    --text-color: #ffffff;
+    --glass-bg: rgba(255, 255, 255, 0.08);
+    --glass-border: rgba(255, 255, 255, 0.15);
+    
+    --primary: #4ade80;
+    --primary-hover: #22c55e;
+    --secondary: #94a3b8;
+    --secondary-hover: #64748b;
+    --outline: transparent;
+    --outline-border: rgba(255, 255, 255, 0.5);
+    --outline-hover: rgba(255, 255, 255, 0.2);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    color: var(--text-color);
+    background: linear-gradient(135deg, var(--bg-start-1), var(--bg-start-2), var(--bg-start-3));
+    background-size: 200% 200%;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background 1.5s ease-in-out;
+    padding: 20px;
+}
+
+/* Background States */
+body.bg-yellow {
+    background: linear-gradient(135deg, var(--bg-yellow-1), var(--bg-yellow-2), var(--bg-yellow-3));
+    background-size: 200% 200%;
+}
+
+body.bg-red {
+    background: linear-gradient(135deg, var(--bg-red-1), var(--bg-red-2), var(--bg-red-3));
+    background-size: 200% 200%;
+    animation: pulseRed 2s infinite;
+}
+
+@keyframes pulseRed {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Glassmorphism Container */
+.glass-container {
+    background: var(--glass-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-radius: 24px;
+    padding: 40px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--glass-border);
+    max-width: 480px;
+    width: 100%;
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+h1 {
+    font-weight: 800;
+    font-size: 2rem;
+    margin-bottom: 30px;
+    letter-spacing: -0.5px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.input-group {
+    margin-bottom: 25px;
+    text-align: left;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+input[type="number"] {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--glass-border);
+    background: rgba(0, 0, 0, 0.2);
+    color: white;
+    font-size: 1.1rem;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+input[type="number"]:focus {
+    border-color: rgba(255, 255, 255, 0.5);
+    background: rgba(0, 0, 0, 0.3);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+}
+
+.btn-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 30px;
+}
+
+.btn {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex: 1;
+    min-width: 100px;
+}
+
+.btn:active {
+    transform: scale(0.96);
+}
+
+.btn.primary {
+    background: var(--primary);
+    color: #0f172a;
+    box-shadow: 0 4px 15px rgba(74, 222, 128, 0.3);
+    flex-basis: 100%;
+    margin-bottom: 4px;
+}
+
+.btn.primary:hover {
+    background: var(--primary-hover);
+}
+
+.btn.secondary {
+    background: var(--secondary);
+    color: #ffffff;
+}
+
+.btn.secondary:hover {
+    background: var(--secondary-hover);
+}
+
+.btn.outline {
+    background: var(--outline);
+    border: 1px solid var(--outline-border);
+    color: white;
+}
+
+.btn.outline:hover {
+    background: var(--outline-hover);
+}
+
+#clockDisplay {
+    font-size: 4.5rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 2px;
+    margin: 20px 0;
+    text-shadow: 0 8px 16px rgba(0,0,0,0.5);
+    line-height: 1;
+}
+
+.end-time {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    background: rgba(0, 0, 0, 0.2);
+    padding: 10px 20px;
+    border-radius: 20px;
+    display: inline-block;
+    margin-bottom: 10px;
+}
+
+.status-message {
+    min-height: 24px;
+    margin-top: 10px;
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 600;
+}
+
+/* Responsywność */
+@media (max-width: 480px) {
+    #clockDisplay {
+        font-size: 3.5rem;
+    }
+    .glass-container {
+        padding: 30px 20px;
+    }
+}
