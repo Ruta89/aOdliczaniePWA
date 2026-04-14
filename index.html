@@ -13,7 +13,13 @@
 <body>
     <div class="glass-container">
         <h1>Czasomierz</h1>
-        <div id="clockDisplay">00:00:00</div>
+        <div class="timer-container" style="position: relative; width: 220px; height: 220px; margin: 0 auto 30px auto; display: flex; align-items: center; justify-content: center;">
+            <svg class="progress-ring" width="220" height="220" style="position: absolute; top: 0; left: 0; transform: rotate(-90deg);">
+                <circle class="progress-ring__circle-bg" stroke="rgba(255,255,255,0.1)" stroke-width="8" fill="transparent" r="100" cx="110" cy="110"/>
+                <circle class="progress-ring__circle" stroke="#4ade80" stroke-width="8" stroke-linecap="round" fill="transparent" r="100" cx="110" cy="110" stroke-dasharray="628.318" stroke-dashoffset="0" style="transition: stroke-dashoffset 1s linear, stroke 0.5s;"/>
+            </svg>
+            <div id="clockDisplay" style="margin: 0; z-index: 10;">00:00:00</div>
+        </div>
         
         <div id="endTimeDisplay" class="end-time">Koniec: --:--:--</div>
         
@@ -85,6 +91,8 @@
 
         <div class="btn-group">
             <button id="startBtn" class="btn primary">⏱️ Start</button>
+            <button id="pauseBtn" class="btn primary" style="background: #f59e0b; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3); display: none;">⏸️ Pauza</button>
+            <button id="resumeBtn" class="btn primary" style="background: #3b82f6; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3); display: none;">▶️ Wznów</button>
             <button id="stopBtn" class="btn primary" style="background: #ef4444; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3); display: none;">🛑 Koniec</button>
         </div>
         

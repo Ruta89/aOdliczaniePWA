@@ -1,10 +1,20 @@
 document.addEventListener('DOMContentLoaded', () => {
     const timeInput = document.getElementById('timeInput');
     const startBtn = document.getElementById('startBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const resumeBtn = document.getElementById('resumeBtn');
     const stopBtn = document.getElementById('stopBtn');
     const clockDisplay = document.getElementById('clockDisplay');
     const endTimeDisplay = document.getElementById('endTimeDisplay');
     const statusMessage = document.getElementById('statusMessage');
+    
+    // Konfiguracja kółka postępu
+    const progressCircle = document.querySelector('.progress-ring__circle');
+    const circumference = progressCircle ? progressCircle.r.baseVal.value * 2 * Math.PI : 628.318;
+    if (progressCircle) {
+        progressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
+        progressCircle.style.strokeDashoffset = 0;
+    }
     
     // Elementy kalkulatora
     const tonnageInput = document.getElementById('tonnage');
@@ -56,6 +66,16 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('activeTimer_length', lengthInput.value);
         localStorage.setItem('activeTimer_pieces', piecesInput.value);
         localStorage.setItem('activeTimer_timeInput', timeInput.value);
+        
+        if (targetTime > 0) {
+            localStorage.setItem('activeTimer_targetTime', targetTime);
+            localStorage.setItem('activeTimer_startTimeDate', startTimeDate);
+            localStorage.setItem('activeTimer_running', 'true');
+            localStorage.setItem('activeTimer_isPaused', isPaused ? 'true' : 'false');
+            localStorage.setItem('activeTimer_totalPausedMs', totalPausedMs);
+            localStorage.setItem('activeTimer_pauseStart', pauseStart);
+            localStorage.setItem('activeTimer_originalTotalMs', originalTotalMs);
+        }
     }
 
     function calculateValues(dontShowIfEmpty = false) {
@@ -106,6 +126,12 @@ document.addEventListener('DOMContentLoaded', () => {
     let isMuted = false;
     let startTimeDate = 0;
     
+    let isPaused = false;
+    let totalPausedMs = 0;
+    let pauseStart = 0;
+    let originalTotalMs = 0;
+    let wakeLock = null;
+    
     let audioCtx = null;
     let alarmTimeout = null;
 
@@ -120,6 +146,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 .catch(err => console.log('Service Worker registration failed:', err));
         });
     }
+
+    async function requestWakeLock() {
+        try {
+            if ('wakeLock' in navigator) {
+                wakeLock = await navigator.wakeLock.request('screen');
+            }
+        } catch (err) {
+            console.warn(`Wake Lock error: ${err.name}, ${err.message}`);
+        }
+    }
+    
+    async function releaseWakeLock() {
+        if (wakeLock !== null) {
+            await wakeLock.release();
+            wakeLock = null;
+        }
+    }
+
+    document.addEventListener('visibilitychange', () => {
+        if (wakeLock !== null && document.visibilityState === 'visible' && !isPaused && timerInterval) {
+            requestWakeLock();
+        }
+    });
 
     function initAudio() {
         if (!audioCtx) {
@@ -202,7 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateDisplay() {
         if (targetTime === 0) return;
         
-        const now = Date.now();
+        const now = isPaused ? pauseStart : Date.now();
         const remainingStr = Math.round((targetTime - now) / 1000);
         let remaining = parseInt(remainingStr, 10);
         
@@ -210,8 +259,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         clockDisplay.textContent = formatTime(remaining);
         updateBackground(remaining);
+        
+        if (progressCircle && originalTotalMs > 0) {
+            const percent = remaining / (originalTotalMs / 1000);
+            const offset = circumference - percent * circumference;
+            progressCircle.style.strokeDashoffset = offset;
+            
+            if (remaining < 60) progressCircle.style.stroke = '#ef4444';
+            else if (remaining < 180) progressCircle.style.stroke = '#f59e0b';
+            else progressCircle.style.stroke = '#4ade80';
+        }
 
-        if (remaining < 60 && remaining > 0) {
+        if (remaining < 60 && remaining > 0 && !isPaused) {
             startAlarm();
         }
 
@@ -226,10 +285,19 @@ document.addEventListener('DOMContentLoaded', () => {
             window.finishEarlyAndSave(false);
             
             startTimeDate = 0;
+            isPaused = false;
             startBtn.style.display = 'inline-block';
+            if (pauseBtn) pauseBtn.style.display = 'none';
+            if (resumeBtn) resumeBtn.style.display = 'none';
             stopBtn.style.display = 'none';
             clockDisplay.textContent = '00:00:00';
             endTimeDisplay.textContent = 'Koniec: --:--:--';
+            releaseWakeLock();
+            
+            if (progressCircle) {
+                progressCircle.style.strokeDashoffset = 0;
+                progressCircle.style.stroke = '#4ade80';
+            }
         }
     }
 
@@ -260,15 +328,19 @@ document.addEventListener('DOMContentLoaded', () => {
         stopAlarm();
         
         const totalMs = Math.floor(val * 3600 * 1000);
+        originalTotalMs = totalMs;
         startTimeDate = Date.now();
         targetTime = startTimeDate + totalMs;
+        isPaused = false;
+        totalPausedMs = 0;
+        pauseStart = 0;
 
-        localStorage.setItem('activeTimer_targetTime', targetTime);
-        localStorage.setItem('activeTimer_startTimeDate', startTimeDate);
-        localStorage.setItem('activeTimer_running', 'true');
         saveState();
+        requestWakeLock();
 
         startBtn.style.display = 'none';
+        if (pauseBtn) pauseBtn.style.display = 'inline-block';
+        if (resumeBtn) resumeBtn.style.display = 'none';
         stopBtn.style.display = 'inline-block';
 
         const endD = new Date(targetTime);
@@ -294,8 +366,60 @@ document.addEventListener('DOMContentLoaded', () => {
         timerInterval = setInterval(updateDisplay, 1000);
     });
 
-    stopBtn.addEventListener('click', () => {
+    if (pauseBtn) pauseBtn.addEventListener('click', () => {
+        isPaused = true;
+        pauseStart = Date.now();
+        
         if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+        
+        pauseBtn.style.display = 'none';
+        resumeBtn.style.display = 'inline-block';
+        
+        endTimeDisplay.textContent = 'Trwa pauza...';
+        
+        saveState();
+        releaseWakeLock();
+        updateDisplay();
+    });
+
+    if (resumeBtn) resumeBtn.addEventListener('click', () => {
+        isPaused = false;
+        const pausedFor = Date.now() - pauseStart;
+        totalPausedMs += pausedFor;
+        targetTime += pausedFor; 
+        
+        pauseStart = 0;
+        
+        pauseBtn.style.display = 'inline-block';
+        resumeBtn.style.display = 'none';
+        
+        saveState();
+        requestWakeLock();
+        
+        const endD = new Date(targetTime);
+        const today = new Date();
+        const isSameDay = endD.getDate() === today.getDate() && endD.getMonth() === today.getMonth() && endD.getFullYear() === today.getFullYear();
+        const endH = String(endD.getHours()).padStart(2, '0');
+        const endM = String(endD.getMinutes()).padStart(2, '0');
+        const endS = String(endD.getSeconds()).padStart(2, '0');
+        if (isSameDay) {
+            endTimeDisplay.textContent = `Koniec o: ${endH}:${endM}:${endS}`;
+        } else {
+            const endY = endD.getFullYear();
+            const endMo = String(endD.getMonth()+1).padStart(2, '0');
+            const endDt = String(endD.getDate()).padStart(2, '0');
+            endTimeDisplay.textContent = `Koniec: ${endY}-${endMo}-${endDt} ${endH}:${endM}:${endS}`;
+        }
+        
+        updateDisplay();
+        timerInterval = setInterval(updateDisplay, 1000);
+    });
+
+    stopBtn.addEventListener('click', () => {
+        if (timerInterval || isPaused) {
             clearInterval(timerInterval);
             timerInterval = null;
             
@@ -309,11 +433,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         startTimeDate = 0;
+        isPaused = false;
         startBtn.style.display = 'inline-block';
+        if (pauseBtn) pauseBtn.style.display = 'none';
+        if (resumeBtn) resumeBtn.style.display = 'none';
         stopBtn.style.display = 'none';
         clockDisplay.textContent = '00:00:00';
         endTimeDisplay.textContent = 'Koniec: --:--:--';
         document.body.className = '';
+        releaseWakeLock();
+        if (progressCircle) {
+            progressCircle.style.strokeDashoffset = 0;
+            progressCircle.style.stroke = '#4ade80';
+        }
     });
 
     const saveOnEnter = (e) => {
@@ -363,7 +495,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let actualMins = declaredMins;
         if (!isManualSave && startTimeDate > 0) {
-            actualMins = parseFloat(((Date.now() - startTimeDate) / 60000).toFixed(1));
+            let activeMs = Date.now() - startTimeDate - totalPausedMs;
+            if (isPaused && pauseStart > 0) {
+                activeMs -= (Date.now() - pauseStart);
+            }
+            actualMins = parseFloat((activeMs / 60000).toFixed(1));
         }
 
         let t = db[t_val];
@@ -389,6 +525,10 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Wyczyść po zapisie
         localStorage.removeItem('activeTimer_running');
+        localStorage.removeItem('activeTimer_isPaused');
+        localStorage.removeItem('activeTimer_totalPausedMs');
+        localStorage.removeItem('activeTimer_pauseStart');
+        localStorage.removeItem('activeTimer_originalTotalMs');
         localStorage.removeItem('activeTimer_targetTime');
         localStorage.removeItem('activeTimer_startTimeDate');
         localStorage.removeItem('activeTimer_tonnage');
