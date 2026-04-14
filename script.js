@@ -2,8 +2,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const timeInput = document.getElementById('timeInput');
     const startBtn = document.getElementById('startBtn');
     const stopBtn = document.getElementById('stopBtn');
-    const resetBtn = document.getElementById('resetBtn');
-    const muteBtn = document.getElementById('muteBtn');
     const clockDisplay = document.getElementById('clockDisplay');
     const endTimeDisplay = document.getElementById('endTimeDisplay');
     const statusMessage = document.getElementById('statusMessage');
@@ -34,12 +32,36 @@ document.addEventListener('DOMContentLoaded', () => {
         "12.0":{ spools: 6, cnt1: 28, cnt2: 56, wgt1: 2.329, wgt2: 4.658 },
         "15.0":{ spools: 6, cnt1: 36, cnt2: 72, wgt1: 2.990, wgt2: 5.980 },
         "20.0":{ spools: 12, cnt1: 26, cnt2: 52, wgt1: 4.326, wgt2: 8.652 },
-        "25.0":{ spools: 12, cnt1: 32, cnt2: 64, wgt1: 5.320, wgt2: 10.640 }, 
-        "30.0":{ spools: 12, cnt1: 38, cnt2: 76, wgt1: 6.323, wgt2: 12.646 }
+        "25.0":{ spools: 12, cnt1: 32, cnt2: 64, wgt1: 5.320, wgt2: 10.640 },
+        "30.0":{ spools: 12, cnt1: 38, cnt2: 76, wgt1: 6.323, wgt2: 12.646 },
+        "35.0":{ spools: 12, cnt1: 44, cnt2: 88, wgt1: 7.320, wgt2: 14.640 },
+        "40.0":{ spools: 12, cnt1: 50, cnt2: 100, wgt1: 8.320, wgt2: 16.640 },
+        "45.0":{ spools: 12, cnt1: 54, cnt2: 108, wgt1: 8.990, wgt2: 17.980 },
+        "50.0":{ spools: 12, cnt1: 64, cnt2: 128, wgt1: 10.649, wgt2: 21.298 },
+        "60.0":{ spools: 12, cnt1: 76, cnt2: 152, wgt1: 12.650, wgt2: 25.300 },
+        "70.0":{ spools: 12, cnt1: 88, cnt2: 176, wgt1: 14.640, wgt2: 29.280 },
+        "80.0":{ spools: 12, cnt1: 100, cnt2: 200, wgt1: 16.640, wgt2: 33.280 },
+        "90.0":{ spools: 12, cnt1: 114, cnt2: 228, wgt1: 18.970, wgt2: 37.940 },
+        "100.0":{ spools: 12, cnt1: 126, cnt2: 252, wgt1: 20.970, wgt2: 41.940 },
+        "125.0":{ spools: 12, cnt1: 160, cnt2: 320, wgt1: 26.620, wgt2: 53.240 },
+        "150.0":{ spools: 12, cnt1: 192, cnt2: 384, wgt1: 31.950, wgt2: 63.900 },
+        "180.0":{ spools: 12, cnt1: 228, cnt2: 456, wgt1: 37.940, wgt2: 75.880 },
+        "200.0":{ spools: 12, cnt1: 252, cnt2: 504, wgt1: 41.930, wgt2: 83.860 },
+        "250.0":{ spools: 12, cnt1: 320, cnt2: 640, wgt1: 53.250, wgt2: 106.500 },
+        "300.0":{ spools: 12, cnt1: 384, cnt2: 768, wgt1: 63.890, wgt2: 127.780 }
     };
 
-    function calculateValues() {
+    function saveState() {
+        localStorage.setItem('activeTimer_tonnage', tonnageInput.value);
+        localStorage.setItem('activeTimer_length', lengthInput.value);
+        localStorage.setItem('activeTimer_pieces', piecesInput.value);
+        localStorage.setItem('activeTimer_timeInput', timeInput.value);
+    }
+
+    function calculateValues(dontShowIfEmpty = false) {
         if (!tonnageInput || !lengthInput || !piecesInput) return;
+        if (dontShowIfEmpty && (lengthInput.value === '' || piecesInput.value === '')) return;
+
         let t_val = tonnageInput.value;
         let L1 = parseFloat(lengthInput.value) || 1.0;
         let pieces = parseInt(piecesInput.value) || 1;
@@ -71,14 +93,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (outExchange) outExchange.textContent = exchange_pieces + " szt";
     }
 
-    if (tonnageInput) tonnageInput.addEventListener('change', calculateValues);
-    if (lengthInput) lengthInput.addEventListener('input', calculateValues);
-    if (piecesInput) piecesInput.addEventListener('input', calculateValues);
+    if (tonnageInput) tonnageInput.addEventListener('change', () => { calculateValues(); saveState(); });
+    if (lengthInput) lengthInput.addEventListener('input', () => { calculateValues(); saveState(); });
+    if (piecesInput) piecesInput.addEventListener('input', () => { calculateValues(); saveState(); });
+    if (timeInput) timeInput.addEventListener('input', () => { saveState(); });
     
     // Oblicz na starcie, jeśli są domyślne wartości
-    calculateValues();
-
-    const saveBtn = document.getElementById('saveBtn');
+    calculateValues(true);
 
     let targetTime = 0;
     let timerInterval = null;
@@ -206,8 +227,9 @@ document.addEventListener('DOMContentLoaded', () => {
             
             startTimeDate = 0;
             startBtn.style.display = 'inline-block';
-            if (saveBtn) saveBtn.style.display = 'inline-block';
             stopBtn.style.display = 'none';
+            clockDisplay.textContent = '00:00:00';
+            endTimeDisplay.textContent = 'Koniec: --:--:--';
         }
     }
 
@@ -241,8 +263,12 @@ document.addEventListener('DOMContentLoaded', () => {
         startTimeDate = Date.now();
         targetTime = startTimeDate + totalMs;
 
+        localStorage.setItem('activeTimer_targetTime', targetTime);
+        localStorage.setItem('activeTimer_startTimeDate', startTimeDate);
+        localStorage.setItem('activeTimer_running', 'true');
+        saveState();
+
         startBtn.style.display = 'none';
-        if (saveBtn) saveBtn.style.display = 'none';
         stopBtn.style.display = 'inline-block';
 
         const endD = new Date(targetTime);
@@ -284,53 +310,25 @@ document.addEventListener('DOMContentLoaded', () => {
         
         startTimeDate = 0;
         startBtn.style.display = 'inline-block';
-        if (saveBtn) saveBtn.style.display = 'inline-block';
         stopBtn.style.display = 'none';
-        document.body.className = '';
-    });
-
-    resetBtn.addEventListener('click', () => {
-        if (timerInterval) clearInterval(timerInterval);
-        timerInterval = null;
-        stopAlarm();
-        document.body.className = '';
-        targetTime = 0;
-        startTimeDate = 0;
-        
-        startBtn.style.display = 'inline-block';
-        if (saveBtn) saveBtn.style.display = 'inline-block';
-        stopBtn.style.display = 'none';
-        
-        timeInput.value = '';
         clockDisplay.textContent = '00:00:00';
         endTimeDisplay.textContent = 'Koniec: --:--:--';
-        statusMessage.textContent = '';
+        document.body.className = '';
     });
-
-    muteBtn.addEventListener('click', () => {
-        isMuted = !isMuted;
-        if (isMuted) {
-            muteBtn.textContent = 'Włącz dźwięk 🔔';
-            muteBtn.style.background = 'rgba(255, 255, 255, 0.3)';
-            if (alarmTimeout) stopAlarm();
-        } else {
-            muteBtn.textContent = 'Wycisz 🔕';
-            muteBtn.style.background = 'var(--outline)';
-            if (targetTime > 0 && (targetTime - Date.now()) / 1000 < 60) {
-                startAlarm();
-            }
-        }
-    });
-
-    muteBtn.textContent = 'Wycisz 🔕';
 
     const saveOnEnter = (e) => {
         if (e.key === 'Enter') {
-            window.finishEarlyAndSave(true);
-            statusMessage.textContent = '✅ Zapisano zlecenie do Dziennika!';
-            setTimeout(() => { if(statusMessage.textContent.includes('Zapisano')) statusMessage.textContent = ''; }, 3000);
-            timeInput.blur();
-            piecesInput.blur();
+            if (timeInput.value && lengthInput.value && piecesInput.value) {
+                // Automatycznie rozpocznij rónież odliczanie
+                startBtn.click();
+                timeInput.blur();
+                piecesInput.blur();
+                lengthInput.blur();
+                tonnageInput.blur();
+            } else {
+                statusMessage.textContent = 'Wypełnij wszystkie pola aby wystartować!';
+                setTimeout(() => { statusMessage.textContent = ''; }, 3000);
+            }
         }
     };
 
@@ -388,6 +386,21 @@ document.addEventListener('DOMContentLoaded', () => {
             actualTime: actualMins,
             weight: total_wgt
         });
+        
+        // Wyczyść po zapisie
+        localStorage.removeItem('activeTimer_running');
+        localStorage.removeItem('activeTimer_targetTime');
+        localStorage.removeItem('activeTimer_startTimeDate');
+        localStorage.removeItem('activeTimer_tonnage');
+        localStorage.removeItem('activeTimer_length');
+        localStorage.removeItem('activeTimer_pieces');
+        localStorage.removeItem('activeTimer_timeInput');
+
+        tonnageInput.value = "1.0";
+        lengthInput.value = "";
+        piecesInput.value = "";
+        timeInput.value = "";
+        if (calcResults) calcResults.style.display = 'none';
         
         window.renderHistory();
     }
@@ -544,6 +557,44 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.removeChild(link);
     }
     
+    // Restore z localStorage w razie ubicia karty
+    if (localStorage.getItem('activeTimer_running') === 'true') {
+        if (localStorage.getItem('activeTimer_tonnage')) tonnageInput.value = localStorage.getItem('activeTimer_tonnage');
+        if (localStorage.getItem('activeTimer_length')) lengthInput.value = localStorage.getItem('activeTimer_length');
+        if (localStorage.getItem('activeTimer_pieces')) piecesInput.value = localStorage.getItem('activeTimer_pieces');
+        if (localStorage.getItem('activeTimer_timeInput')) timeInput.value = localStorage.getItem('activeTimer_timeInput');
+        
+        targetTime = parseInt(localStorage.getItem('activeTimer_targetTime'), 10) || 0;
+        startTimeDate = parseInt(localStorage.getItem('activeTimer_startTimeDate'), 10) || 0;
+        
+        calculateValues();
+        
+        if (targetTime > 0) {
+            startBtn.style.display = 'none';
+            stopBtn.style.display = 'inline-block';
+            
+            const endD = new Date(targetTime);
+            const today = new Date();
+            const isSameDay = endD.getDate() === today.getDate() && endD.getMonth() === today.getMonth() && endD.getFullYear() === today.getFullYear();
+            
+            const endH = String(endD.getHours()).padStart(2, '0');
+            const endM = String(endD.getMinutes()).padStart(2, '0');
+            const endS = String(endD.getSeconds()).padStart(2, '0');
+            
+            if (isSameDay) {
+                endTimeDisplay.textContent = `Koniec o: ${endH}:${endM}:${endS}`;
+            } else {
+                const endY = endD.getFullYear();
+                const endMo = String(endD.getMonth()+1).padStart(2, '0');
+                const endDt = String(endD.getDate()).padStart(2, '0');
+                endTimeDisplay.textContent = `Koniec: ${endY}-${endMo}-${endDt} ${endH}:${endM}:${endS}`;
+            }
+            
+            updateDisplay();
+            timerInterval = setInterval(updateDisplay, 1000);
+        }
+    }
+
     // Uruchom na start
     window.renderHistory();
 });
